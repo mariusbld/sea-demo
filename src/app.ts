@@ -1,10 +1,13 @@
 import express from 'express';
 import * as web3 from '@solana/web3.js';
-import * as bodyParser from "body-parser"
+import * as bodyParser from "body-parser";
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+app.use(cors());
+
 
 
 var raffleId = new web3.PublicKey('4AgY3XGwYL3PGhEeVktLUn16PCjmH2NaXkoN8CsFaXXN'); //web3.Keypair.generate().publicKey;
