@@ -113,10 +113,20 @@ function refreshTransactions() {
 }
 function sendPrize(recipient) {
     return __awaiter(this, void 0, void 0, function* () {
-        var airdropSignature = yield connection.requestAirdrop(new web3.PublicKey(recipient), web3.LAMPORTS_PER_SOL);
-        //wait for airdrop confirmation
-        yield connection.confirmTransaction(airdropSignature);
-        console.log(`sent 1 SOL to ${recipient}`);
+        //   var airdropSignature = await connection.requestAirdrop(
+        //   new web3.PublicKey(recipient),
+        //   web3.LAMPORTS_PER_SOL,
+        // );
+        // recipient = '5YTDtGXhF5LTd5qDHQuyUYXycj4fjXKjEPK2cuSZCcJp';
+        const transferIx = web3.SystemProgram.transfer({
+            fromPubkey: wallet.publicKey,
+            toPubkey: new web3.PublicKey(recipient),
+            lamports: web3.LAMPORTS_PER_SOL / 10
+        });
+        const transferSig = yield connection.sendTransaction(new web3.Transaction().add(transferIx), [wallet]);
+        //wait for tranfser confirmation
+        yield connection.confirmTransaction(transferSig);
+        console.log(`sent 0.1 SOL to ${recipient}`);
     });
 }
 // (async () => {

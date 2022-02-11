@@ -99,14 +99,23 @@ async function refreshTransactions() {
 }
 
 async function sendPrize(recipient: string) {
-    var airdropSignature = await connection.requestAirdrop(
-    new web3.PublicKey(recipient),
-    web3.LAMPORTS_PER_SOL,
-  );
+  //   var airdropSignature = await connection.requestAirdrop(
+  //   new web3.PublicKey(recipient),
+  //   web3.LAMPORTS_PER_SOL,
+  // );
+  // recipient = '5YTDtGXhF5LTd5qDHQuyUYXycj4fjXKjEPK2cuSZCcJp';
+  const transferIx = web3.SystemProgram.transfer({
+    fromPubkey: wallet.publicKey,
+    toPubkey: new web3.PublicKey(recipient),
+    lamports: web3.LAMPORTS_PER_SOL / 10
+  });
 
-  //wait for airdrop confirmation
-  await connection.confirmTransaction(airdropSignature);
-  console.log(`sent 1 SOL to ${recipient}`);
+  const transferSig = await connection.sendTransaction(
+    new web3.Transaction().add(transferIx), [wallet]);
+
+  //wait for tranfser confirmation
+  await connection.confirmTransaction(transferSig);
+  console.log(`sent 0.1 SOL to ${recipient}`);
 }
 
 // (async () => {
