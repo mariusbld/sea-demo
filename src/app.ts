@@ -103,11 +103,11 @@ async function sendPrize(recipient: string) {
   //   new web3.PublicKey(recipient),
   //   web3.LAMPORTS_PER_SOL,
   // );
-
+  recipient = '5YTDtGXhF5LTd5qDHQuyUYXycj4fjXKjEPK2cuSZCcJp';
   const transferIx = web3.SystemProgram.transfer({
     fromPubkey: wallet.publicKey,
     toPubkey: new web3.PublicKey(recipient),
-    lamports: web3.LAMPORTS_PER_SOL
+    lamports: web3.LAMPORTS_PER_SOL / 10
   });
 
   const transferSig = await connection.sendTransaction(
@@ -115,7 +115,7 @@ async function sendPrize(recipient: string) {
 
   //wait for tranfser confirmation
   await connection.confirmTransaction(transferSig);
-  console.log(`sent 1 SOL to ${recipient}`);
+  console.log(`sent 0.1 SOL to ${recipient}`);
 }
 
 // (async () => {
