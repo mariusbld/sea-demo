@@ -7,4 +7,7 @@ express()
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
   .get('/', (req, res) => res.render('pages/index'))
+  .get('/counter', (req, res) => { 
+    res.send('{counter: 7}');
+  })
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
