@@ -129,7 +129,7 @@ function sendPrize(recipient) {
         //   new web3.PublicKey(recipient),
         //   web3.LAMPORTS_PER_SOL,
         // );
-        recipient = '5YTDtGXhF5LTd5qDHQuyUYXycj4fjXKjEPK2cuSZCcJp';
+        // recipient = '5YTDtGXhF5LTd5qDHQuyUYXycj4fjXKjEPK2cuSZCcJp';
         const transferIx = web3.SystemProgram.transfer({
             fromPubkey: wallet.publicKey,
             toPubkey: new web3.PublicKey(recipient),
