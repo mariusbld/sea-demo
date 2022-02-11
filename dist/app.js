@@ -34,17 +34,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const web3 = __importStar(require("@solana/web3.js"));
 const bodyParser = __importStar(require("body-parser"));
-<<<<<<< HEAD
 const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 8080;
 app.use(bodyParser.json());
 app.use((0, cors_1.default)());
-=======
-const app = (0, express_1.default)();
-const PORT = process.env.PORT || 8080;
-app.use(bodyParser.json());
->>>>>>> 35f1ff8 (WIP)
 var raffleId = new web3.PublicKey('4AgY3XGwYL3PGhEeVktLUn16PCjmH2NaXkoN8CsFaXXN'); //web3.Keypair.generate().publicKey;
 var watcherId = watchTransactions();
 var contestants = [];
@@ -119,12 +113,6 @@ function refreshTransactions() {
 }
 function sendPrize(recipient) {
     return __awaiter(this, void 0, void 0, function* () {
-<<<<<<< HEAD
-        var airdropSignature = yield connection.requestAirdrop(new web3.PublicKey(recipient), web3.LAMPORTS_PER_SOL);
-        //wait for airdrop confirmation
-        yield connection.confirmTransaction(airdropSignature);
-        console.log(`sent 1 SOL to ${recipient}`);
-=======
         //   var airdropSignature = await connection.requestAirdrop(
         //   new web3.PublicKey(recipient),
         //   web3.LAMPORTS_PER_SOL,
@@ -139,7 +127,6 @@ function sendPrize(recipient) {
         //wait for tranfser confirmation
         yield connection.confirmTransaction(transferSig);
         console.log(`sent 0.1 SOL to ${recipient}`);
->>>>>>> 35f1ff8 (WIP)
     });
 }
 // (async () => {
