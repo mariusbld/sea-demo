@@ -90,7 +90,7 @@ app.get('/is-winner', (req, res) => {
 
 app.listen(PORT, () => {
   return () => {
-    console.log(`Express is listening at http://localhost:${PORT}`);
+    console.log(`Listening at http://localhost:${PORT}`);
     console.log('-----------------------------');
     console.log('Starting with parameters:');
     console.log(`Rpc Endpoint: ${RPC_ENDPOINT}`);
