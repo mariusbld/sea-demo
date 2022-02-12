@@ -7,8 +7,8 @@ import { Token, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/sp
 const PORT = process.env.PORT || 8080;
 const WATCH_INTERVAL_MS = parseInt(process.env.WATCH_INTERVAL_MS || "0") || 10000;
 const RAFFLE_ID = process.env.RAFFLE_ID || 'GVfvCHrkU2rYZDdgGAeXq5eu6GVwgHCiNTUwKzyBbbmw';
-const SHIBA_MINT = process.env.SHIBA_MINT || '8XDLdjhwcTxXcdu6mPMRuKdX3rkhiHiVSVkaiQCeny75';
-const RPC_ENDPOINT_RAW = process.env.RPC_ENDPOINT || 'devnet';
+const SHIBA_MINT = process.env.SHIBA_MINT || '4UMsJonC4Mk7j843E5avFQLAkdsy256YaK6eXrEyjQi2';// devnet '8XDLdjhwcTxXcdu6mPMRuKdX3rkhiHiVSVkaiQCeny75';
+const RPC_ENDPOINT_RAW = process.env.RPC_ENDPOINT || 'https://ssc-dao.genesysgo.net/'; // 'mainnet-beta'; // 'devnet';
 const RPC_ENDPOINT = ['devnet', 'testnet', 'mainnet-beta'].includes(RPC_ENDPOINT_RAW) ? 
   web3.clusterApiUrl(RPC_ENDPOINT_RAW as web3.Cluster) : RPC_ENDPOINT_RAW;
 const PRIZE_SOL = parseFloat(process.env.PRIZE_SOL) || 0.1;
@@ -142,8 +142,8 @@ async function fulfillOrders(sigsToWallet: Map<string, string>) {
       continue;
     }
     console.log(`fulfill: sig=${sig} wallet=${wallet}`);
-    await sendNftToBuyer(wallet);
     fulfilledSignatures.set(sig, true);
+    await sendNftToBuyer(wallet);
   }
 }
 
