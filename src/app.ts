@@ -72,7 +72,7 @@ app.post('/pick-winner', async (req, res) => {
     return;
   }
   if (winner) {
-    res.status(401);
+    res.json({ winner });
     return;
   }
   winner = contestants[Math.floor(Math.random() * contestants.length)];
@@ -87,7 +87,7 @@ app.get('/get-winner', (req, res) => {
 app.get('/is-winner', (req, res) => {
   const contestant = req.query.wallet as string;
   if (!contestant) {
-    res.status(400);
+    res.status(400).end();
     return;
   }
   if (!winner) {
