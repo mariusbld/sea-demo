@@ -76,7 +76,7 @@ app.post('/pick-winner', async (req, res) => {
     return;
   }
   winner = contestants[Math.floor(Math.random() * contestants.length)];
-  await sendPrize(winner);
+  //await sendPrize(winner);
   res.json({ winner });
 });
 
