@@ -36,6 +36,7 @@ const web3 = __importStar(require("@solana/web3.js"));
 const bodyParser = __importStar(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const spl_token_1 = require("@solana/spl-token");
+const base58_js_1 = require("base58-js");
 const PORT = process.env.PORT || 8080;
 const WATCH_INTERVAL_MS = parseInt(process.env.WATCH_INTERVAL_MS || "0") || 10000;
 const RAFFLE_ID = process.env.RAFFLE_ID || 'GVfvCHrkU2rYZDdgGAeXq5eu6GVwgHCiNTUwKzyBbbmw';
@@ -63,8 +64,12 @@ var contestants = [];
 let winner = undefined;
 var fulfilledSignatures = new Map();
 var connection = new web3.Connection(RPC_ENDPOINT, 'confirmed');
+var codedString = '2RT15WD36pqfSyrMtR7YF6x4z2etxxtPtboJ8LR7CVhBrztgG7D9kvoMnoziByMYiCuVogKx2VYvRXwAAf6yvJrL';
+var arr = (0, base58_js_1.base58_to_binary)(codedString);
 // Alice (AVr2dcYjJKeAXDKEcNV51Pu9mUZRHT43vRVVJAkgYgsT)
-var wallet = web3.Keypair.fromSecretKey(new Uint8Array([137, 178, 106, 243, 4, 227, 208, 10, 177, 173, 164, 228, 238, 216, 185, 218, 9, 65, 161, 221, 244, 130, 177, 193, 219, 89, 192, 78, 245, 16, 49, 183, 141, 28, 225, 154, 217, 145, 125, 22, 200, 68, 186, 162, 185, 229, 153, 12, 233, 240, 111, 113, 71, 200, 211, 222, 76, 249, 156, 246, 221, 84, 124, 210]));
+var wallet = web3.Keypair.fromSecretKey(arr);
+//  new Uint8Array('2RT15WD36pqfSyrMtR7YF6x4z2etxxtPtboJ8LR7CVhBrztgG7D9kvoMnoziByMYiCuVogKx2VYvRXwAAf6yvJrL'));
+//new Uint8Array([137,178,106,243,4,227,208,10,177,173,164,228,238,216,185,218,9,65,161,221,244,130,177,193,219,89,192,78,245,16,49,183,141,28,225,154,217,145,125,22,200,68,186,162,185,229,153,12,233,240,111,113,71,200,211,222,76,249,156,246,221,84,124,210]));
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
