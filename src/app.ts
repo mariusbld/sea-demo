@@ -13,6 +13,15 @@ const RPC_ENDPOINT = ['devnet', 'testnet', 'mainnet-beta'].includes(RPC_ENDPOINT
   web3.clusterApiUrl(RPC_ENDPOINT_RAW as web3.Cluster) : RPC_ENDPOINT_RAW;
 const PRIZE_SOL = parseFloat(process.env.PRIZE_SOL) || 0.1;
 
+console.log('-----------------------------');
+console.log('Starting with parameters:');
+console.log(`Rpc Endpoint: ${RPC_ENDPOINT}`);
+console.log(`Prize: ${PRIZE_SOL} SOL`);
+console.log(`Watch Interval: ${WATCH_INTERVAL_MS / 1000} sec`);
+console.log(`Raffle Id: ${RAFFLE_ID}`);
+console.log(`Shiba Mint: ${SHIBA_MINT}`);
+console.log('-----------------------------');
+
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
@@ -89,17 +98,7 @@ app.get('/is-winner', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  return () => {
-    console.log(`Listening at http://localhost:${PORT}`);
-    console.log('-----------------------------');
-    console.log('Starting with parameters:');
-    console.log(`Rpc Endpoint: ${RPC_ENDPOINT}`);
-    console.log(`Prize: ${PRIZE_SOL} SOL`);
-    console.log(`Watch Interval: ${WATCH_INTERVAL_MS / 1000} sec`);
-    console.log(`Raffle Id: ${RAFFLE_ID}`);
-    console.log(`Shiba Mint: ${SHIBA_MINT}`);
-    console.log('-----------------------------');
-  }
+  return console.log(`Listening at http://localhost:${PORT}`);
 });
 
 let processingRefresh = false;
