@@ -37,19 +37,24 @@ const bodyParser = __importStar(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const spl_token_1 = require("@solana/spl-token");
 const PORT = process.env.PORT || 8080;
+const WATCH_INTERVAL_MS = parseInt(process.env.WATCH_INTERVAL_MS || "0") || 10000;
+const RAFFLE_ID = process.env.RAFFLE_ID || 'GVfvCHrkU2rYZDdgGAeXq5eu6GVwgHCiNTUwKzyBbbmw';
+const SHIBA_MINT = process.env.SHIBA_MINT || '8XDLdjhwcTxXcdu6mPMRuKdX3rkhiHiVSVkaiQCeny75';
+const RPC_ENDPOINT_RAW = process.env.RPC_ENDPOINT || 'devnet';
+const RPC_ENDPOINT = ['devnet', 'testnet', 'mainnet-beta'].includes(RPC_ENDPOINT_RAW) ?
+    web3.clusterApiUrl(RPC_ENDPOINT_RAW) : RPC_ENDPOINT_RAW;
+const PRIZE_SOL = parseFloat(process.env.PRIZE_SOL) || 0.1;
 const app = (0, express_1.default)();
 app.use(bodyParser.json());
 app.use((0, cors_1.default)());
-let shibaMints = [
-    '8XDLdjhwcTxXcdu6mPMRuKdX3rkhiHiVSVkaiQCeny75'
-];
-var raffleId = new web3.PublicKey('914uyLYrV5omTCJ4uuPxcbo6yfBZoW2cSxV1xAgjs4wa');
+let shibaMints = [SHIBA_MINT];
+var raffleId = new web3.PublicKey(RAFFLE_ID);
 // var raffleId =  web3.Keypair.generate().publicKey;
 var watcherId = watchTransactions();
 var contestants = [];
 let winner = undefined;
 var fulfilledSignatures = new Map();
-var connection = new web3.Connection(web3.clusterApiUrl('devnet'), 'confirmed');
+var connection = new web3.Connection(RPC_ENDPOINT, 'confirmed');
 // Alice (AVr2dcYjJKeAXDKEcNV51Pu9mUZRHT43vRVVJAkgYgsT)
 var wallet = web3.Keypair.fromSecretKey(new Uint8Array([137, 178, 106, 243, 4, 227, 208, 10, 177, 173, 164, 228, 238, 216, 185, 218, 9, 65, 161, 221, 244, 130, 177, 193, 219, 89, 192, 78, 245, 16, 49, 183, 141, 28, 225, 154, 217, 145, 125, 22, 200, 68, 186, 162, 185, 229, 153, 12, 233, 240, 111, 113, 71, 200, 211, 222, 76, 249, 156, 246, 221, 84, 124, 210]));
 app.get('/', (req, res) => {
@@ -99,7 +104,17 @@ app.get('/is-winner', (req, res) => {
     res.json({ winner: winner === contestant, isPending: false });
 });
 app.listen(PORT, () => {
-    return console.log(`Express is listening at http://localhost:${PORT}`);
+    return () => {
+        console.log(`Listening at http://localhost:${PORT}`);
+        console.log('-----------------------------');
+        console.log('Starting with parameters:');
+        console.log(`Rpc Endpoint: ${RPC_ENDPOINT}`);
+        console.log(`Prize: ${PRIZE_SOL} SOL`);
+        console.log(`Watch Interval: ${WATCH_INTERVAL_MS / 1000} sec`);
+        console.log(`Raffle Id: ${RAFFLE_ID}`);
+        console.log(`Shiba Mint: ${SHIBA_MINT}`);
+        console.log('-----------------------------');
+    };
 });
 let processingRefresh = false;
 function watchTransactions() {
@@ -111,7 +126,7 @@ function watchTransactions() {
         processingRefresh = true;
         refreshTransactions();
         processingRefresh = false;
-    }, 5000);
+    }, WATCH_INTERVAL_MS);
 }
 function refreshTransactions() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -170,7 +185,7 @@ function sendPrize(recipient) {
         const transferIx = web3.SystemProgram.transfer({
             fromPubkey: wallet.publicKey,
             toPubkey: new web3.PublicKey(recipient),
-            lamports: web3.LAMPORTS_PER_SOL / 10
+            lamports: web3.LAMPORTS_PER_SOL * PRIZE_SOL
         });
         const transferSig = yield connection.sendTransaction(new web3.Transaction().add(transferIx), [wallet]);
         //wait for tranfser confirmation
