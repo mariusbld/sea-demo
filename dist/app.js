@@ -35,15 +35,22 @@ const express_1 = __importDefault(require("express"));
 const web3 = __importStar(require("@solana/web3.js"));
 const bodyParser = __importStar(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
-const app = (0, express_1.default)();
+const spl_token_1 = require("@solana/spl-token");
 const PORT = process.env.PORT || 8080;
+const app = (0, express_1.default)();
 app.use(bodyParser.json());
 app.use((0, cors_1.default)());
-var raffleId = new web3.PublicKey('4AgY3XGwYL3PGhEeVktLUn16PCjmH2NaXkoN8CsFaXXN'); //web3.Keypair.generate().publicKey;
+let shibaMints = [
+    '8XDLdjhwcTxXcdu6mPMRuKdX3rkhiHiVSVkaiQCeny75'
+];
+var raffleId = new web3.PublicKey('914uyLYrV5omTCJ4uuPxcbo6yfBZoW2cSxV1xAgjs4wa');
+// var raffleId =  web3.Keypair.generate().publicKey;
 var watcherId = watchTransactions();
 var contestants = [];
 let winner = undefined;
+var fulfilledSignatures = new Map();
 var connection = new web3.Connection(web3.clusterApiUrl('devnet'), 'confirmed');
+// Alice (AVr2dcYjJKeAXDKEcNV51Pu9mUZRHT43vRVVJAkgYgsT)
 var wallet = web3.Keypair.fromSecretKey(new Uint8Array([137, 178, 106, 243, 4, 227, 208, 10, 177, 173, 164, 228, 238, 216, 185, 218, 9, 65, 161, 221, 244, 130, 177, 193, 219, 89, 192, 78, 245, 16, 49, 183, 141, 28, 225, 154, 217, 145, 125, 22, 200, 68, 186, 162, 185, 229, 153, 12, 233, 240, 111, 113, 71, 200, 211, 222, 76, 249, 156, 246, 221, 84, 124, 210]));
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -54,8 +61,8 @@ app.get('/reset-raffle', (req, res) => {
     contestants = [];
     winner = undefined;
     watcherId = watchTransactions();
-    const reset = true;
-    res.json({ raffleId, reset });
+    fulfilledSignatures.clear();
+    res.json({ raffleId, reset: true });
 });
 app.get('/get-raffle', (req, res) => {
     res.json({ raffleId });
@@ -94,10 +101,17 @@ app.get('/is-winner', (req, res) => {
 app.listen(PORT, () => {
     return console.log(`Express is listening at http://localhost:${PORT}`);
 });
+let processingRefresh = false;
 function watchTransactions() {
     return setInterval(() => {
+        if (processingRefresh) {
+            console.log('already processing..');
+            return;
+        }
+        processingRefresh = true;
         refreshTransactions();
-    }, 3000);
+        processingRefresh = false;
+    }, 5000);
 }
 function refreshTransactions() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -105,10 +119,45 @@ function refreshTransactions() {
         const sigInfos = yield connection.getSignaturesForAddress(raffleId, undefined, 'confirmed');
         const sigs = sigInfos.map(sig => sig.signature);
         const txs = yield connection.getParsedTransactions(sigs);
+        const sigsToWallet = new Map();
+        txs.map(tx => {
+            const sig = tx.transaction.signatures[0];
+            const wallet = tx.transaction.message.accountKeys.find(key => key.signer).pubkey.toString();
+            sigsToWallet.set(sig, wallet);
+        });
+        yield fulfillOrders(sigsToWallet);
         const signers = txs.map(tx => tx.transaction.message.accountKeys.find(key => key.signer));
         const signerWallets = signers.map(signer => signer.pubkey.toString());
-        console.log(signerWallets);
         contestants = signerWallets;
+    });
+}
+function fulfillOrders(sigsToWallet) {
+    return __awaiter(this, void 0, void 0, function* () {
+        for (let [sig, wallet] of sigsToWallet.entries()) {
+            if (fulfilledSignatures.get(sig)) {
+                continue;
+            }
+            console.log(`fulfill: sig=${sig} wallet=${wallet}`);
+            yield sendNftToBuyer(wallet);
+            fulfilledSignatures.set(sig, true);
+        }
+    });
+}
+function sendNftToBuyer(buyer) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const nft = shibaMints[0];
+        const buyerWallet = new web3.PublicKey(buyer);
+        const mint = new web3.PublicKey(nft);
+        const src = yield spl_token_1.Token.getAssociatedTokenAddress(spl_token_1.ASSOCIATED_TOKEN_PROGRAM_ID, spl_token_1.TOKEN_PROGRAM_ID, mint, wallet.publicKey);
+        const token = new spl_token_1.Token(connection, mint, spl_token_1.TOKEN_PROGRAM_ID, wallet);
+        const dstInfo = yield token.getOrCreateAssociatedAccountInfo(buyerWallet);
+        const dst = dstInfo.address;
+        // const ixa = Token.createAssociatedTokenAccountInstruction(
+        //   ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint, dst, new web3.PublicKey(buyer), wallet.publicKey);
+        const ix = spl_token_1.Token.createTransferInstruction(spl_token_1.TOKEN_PROGRAM_ID, src, dst, wallet.publicKey, [], 1);
+        const transferSig = yield connection.sendTransaction(new web3.Transaction().add(ix), [wallet]);
+        yield connection.confirmTransaction(transferSig);
+        console.log(`--> sent NFT to ${buyer}`);
     });
 }
 function sendPrize(recipient) {
@@ -129,19 +178,4 @@ function sendPrize(recipient) {
         console.log(`sent 0.1 SOL to ${recipient}`);
     });
 }
-// (async () => {
-//   // Generate a new wallet keypair and airdrop SOL
-//   var wallet = web3.Keypair.generate();
-//   var airdropSignature = await connection.requestAirdrop(
-//     wallet.publicKey,
-//     web3.LAMPORTS_PER_SOL,
-//   );
-//   //wait for airdrop confirmation
-//   await connection.confirmTransaction(airdropSignature);
-//   // get account info
-//   // account data is bytecode that needs to be deserialized
-//   // serialization and deserialization is program specific
-//   let account = await connection.getAccountInfo(wallet.publicKey);
-//   console.log(account);
-// })();
 //# sourceMappingURL=app.js.map
