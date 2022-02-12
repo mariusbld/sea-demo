@@ -93,7 +93,7 @@ app.post('/pick-winner', (req, res) => __awaiter(void 0, void 0, void 0, functio
         return;
     }
     winner = contestants[Math.floor(Math.random() * contestants.length)];
-    yield sendPrize(winner);
+    //await sendPrize(winner);
     res.json({ winner });
 }));
 app.get('/get-winner', (req, res) => {
