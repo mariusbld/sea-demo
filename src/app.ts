@@ -5,16 +5,30 @@ import cors from 'cors';
 import { Token, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 const PORT = process.env.PORT || 8080;
+const WATCH_INTERVAL_MS = parseInt(process.env.WATCH_INTERVAL_MS || "0") || 10000;
+const RAFFLE_ID = process.env.RAFFLE_ID || '914uyLYrV5omTCJ4uuPxcbo6yfBZoW2cSxV1xAgjs4wa';
+const SHIBA_MINT = process.env.SHIBA_MINT || '8XDLdjhwcTxXcdu6mPMRuKdX3rkhiHiVSVkaiQCeny75';
+const RPC_ENDPOINT_RAW = process.env.RPC_ENDPOINT || 'devnet';
+const RPC_ENDPOINT = ['devnet', 'testnet', 'mainnet-beta'].includes(RPC_ENDPOINT_RAW) ? 
+  web3.clusterApiUrl(RPC_ENDPOINT_RAW as web3.Cluster) : RPC_ENDPOINT_RAW;
+const PRIZE_SOL = parseFloat(process.env.PRIZE_SOL) || 0.1;
+
+console.log('-----------------------------');
+console.log('Starting with parameters:');
+console.log(`Rpc Endpoint: ${RPC_ENDPOINT}`);
+console.log(`Prize: ${PRIZE_SOL} SOL`);
+console.log(`Watch Interval: ${WATCH_INTERVAL_MS / 1000} sec`);
+console.log(`Raffle Id: ${RAFFLE_ID}`);
+console.log(`Shiba Mint: ${SHIBA_MINT}`);
+console.log('-----------------------------');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-let shibaMints = [
-  '8XDLdjhwcTxXcdu6mPMRuKdX3rkhiHiVSVkaiQCeny75'
-];
+let shibaMints = [ SHIBA_MINT ];
 
-var raffleId = new web3.PublicKey('914uyLYrV5omTCJ4uuPxcbo6yfBZoW2cSxV1xAgjs4wa');
+var raffleId = new web3.PublicKey(RAFFLE_ID);
 // var raffleId =  web3.Keypair.generate().publicKey;
 var watcherId = watchTransactions();
 
@@ -22,10 +36,7 @@ var contestants: string[] = [];
 let winner: string | undefined = undefined;
 var fulfilledSignatures = new Map<string, boolean>();
 
-var connection = new web3.Connection(
-  web3.clusterApiUrl('devnet'),
-  'confirmed',
-);
+var connection = new web3.Connection(RPC_ENDPOINT, 'confirmed');
 
 // Alice (AVr2dcYjJKeAXDKEcNV51Pu9mUZRHT43vRVVJAkgYgsT)
 var wallet = web3.Keypair.fromSecretKey(
@@ -100,7 +111,7 @@ function watchTransactions() {
     processingRefresh = true;
     refreshTransactions();
     processingRefresh = false;
-  }, 5000);
+  }, WATCH_INTERVAL_MS);
 }
 
 async function refreshTransactions() {
@@ -173,7 +184,7 @@ async function sendPrize(recipient: string) {
   const transferIx = web3.SystemProgram.transfer({
     fromPubkey: wallet.publicKey,
     toPubkey: new web3.PublicKey(recipient),
-    lamports: web3.LAMPORTS_PER_SOL / 10
+    lamports: web3.LAMPORTS_PER_SOL * PRIZE_SOL
   });
 
   const transferSig = await connection.sendTransaction(
